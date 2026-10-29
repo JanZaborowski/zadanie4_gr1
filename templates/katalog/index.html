@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katalog Manhw i Komiksów — Django API + Fetch</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="hero-header">
+            <div class="container">
+                <div class="badge-tag">Laboratorium: Django API + JavaScript Fetch()</div>
+                <h1 class="main-title">Kolekcja Manhw i Komiksów</h1>
+                <p class="subtitle">
+                    Aplikacja prezentuje asynchroniczne pobieranie danych z bazy Django przez endpoint REST API (JSON) 
+                    z wykorzystaniem JavaScriptu (funkcja <code>fetch()</code>) i bezpieczną aktualizacją struktury DOM.
+                </p>
+                <div class="author-pill">
+                    <span>Autor: <strong>Jan Zaborowski</strong> (Nr albumu: <strong>31401</strong>, Grupa: <strong>gr 1</strong>)</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="container main-content">
+            <!-- Pasek sterowania i filtrów -->
+            <section class="controls-card">
+                <div class="controls-header">
+                    <h2>Panel filtrów i pobierania API</h2>
+                    <span class="api-badge" id="activeApiUrl">Endpoint: /api/manhwa/</span>
+                </div>
+
+                <div class="controls-form">
+                    <div class="form-group">
+                        <label for="filterStatus">Status publikacji (filtr ORM):</label>
+                        <select id="filterStatus" class="form-control">
+                            <option value="all">Wszystkie statusy</option>
+                            <option value="completed">Tylko zakończone (is_completed=True)</option>
+                            <option value="ongoing">W trakcie wydawania (is_completed=False)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filterGenre">Gatunek:</label>
+                        <select id="filterGenre" class="form-control">
+                            <option value="all">Wszystkie gatunki</option>
+                            <option value="Akcja">Akcja</option>
+                            <option value="Fantasy">Fantasy</option>
+                            <option value="System">System / Apokalipsa</option>
+                            <option value="Murim">Murim</option>
+                            <option value="Sport">Sport</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" id="loadDataBtn" class="btn btn-primary">
+                            <svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path d="M3 3v5h5"/>
+                                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                                <path d="M16 21h5v-5"/>
+                            </svg>
+                            <span>Wczytaj dane (fetch)</span>
+                        </button>
+
+                        <button type="button" id="clearBtn" class="btn btn-secondary">
+                            <span>Wyczyść widok</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="quick-links">
+                    <span class="links-label">Szybkie łącza:</span>
+                    <a href="/admin/" target="_blank" class="text-link">Panel administratora Django (/admin/)</a>
+                    <span class="sep">•</span>
+                    <a href="/api/manhwa/" target="_blank" class="text-link" id="rawApiLink">Surowa odpowiedź JSON (/api/manhwa/)</a>
+                </div>
+            </section>
+
+            <!-- Stan ładowania -->
+            <div id="loadingStatus" class="status-box loading-box" style="display: none;">
+                <div class="spinner"></div>
+                <div>
+                    <strong>Pobieranie danych...</strong>
+                    <p class="status-sub">Wysyłanie asynchronicznego zapytania HTTP GET do backendu Django.</p>
+                </div>
+            </div>
+
+            <!-- Komunikaty o błędach / braku danych -->
+            <div id="messageBox" class="status-box" style="display: none;"></div>
+
+            <!-- Pasek statystyk wyników -->
+            <div id="statsBar" class="stats-bar" style="display: none;">
+                <span id="resultsCount">Znaleziono: 0 rekordów</span>
+                <span class="update-indicator">DOM zaktualizowany dynamicznie bez przeładowania strony</span>
+            </div>
+
+            <!-- Obszar wyświetlania rekordów (karty pobrane przez fetch) -->
+            <div id="manhwaContainer" class="cards-grid" aria-live="polite">
+                <div class="placeholder-card" id="initialPlaceholder">
+                    <div class="placeholder-icon">📚</div>
+                    <h3>Brak załadowanych danych</h3>
+                    <p>Kliknij przycisk <strong>„Wczytaj dane (fetch)”</strong> powyżej, aby asynchronicznie odpytać Django API i wyświetlić listę manhw.</p>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container footer-content">
+                <p>Laboratorium: Samodzielna aplikacja Django API + JavaScript fetch()</p>
+                <p class="copy">Akademia im. Jakuba z Paradyża w Gorzowie Wielkopolskim • Wydział Techniczny</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
