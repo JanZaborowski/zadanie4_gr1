@@ -2,7 +2,7 @@ import os
 import django
 from datetime import date
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Komiksy.settings')
 django.setup()
 
 from django.contrib.auth.models import User
