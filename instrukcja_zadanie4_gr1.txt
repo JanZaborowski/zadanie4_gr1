@@ -1,0 +1,273 @@
+================================================================================
+INSTRUKCJA I SZCZEGÓŁOWE WYJAŚNIENIE KROKÓW — ZADANIE 4 (GRUPA 1)
+Przedmiot: Programowanie internetowe
+Temat: Samodzielna aplikacja Django API + JavaScript fetch()
+Autor: Jan Zaborowski (Nr albumu: 31401, Grupa: gr 1)
+Tematyka aplikacji: Kolekcja / Katalog Manhw i Komiksów (Hobby)
+================================================================================
+
+SPIS TREŚCI:
+1. Gdzie znajdują się wszystkie elementy projektu (Lokalnie, GitHub, PythonAnywhere)
+2. Wyjaśnienie każdego kroku realizacji zadania po kolei (Kroki 1 - 8)
+3. Jak obsługiwać aplikację w przeglądarce (Instrukcja użytkownika)
+4. Jak zarządzać danymi w panelu administracyjnym Django (/admin/)
+5. Jak uruchomić aplikację lokalnie na innym komputerze / terminalu
+6. Odpowiedzi na pytania kontrolne z prezentacji
+7. Podsumowanie i linki
+
+--------------------------------------------------------------------------------
+1. GDZIE ZNAJDUJĄ SIĘ ELEMENTY PROJEKTU
+--------------------------------------------------------------------------------
+a) Na Twoim komputerze lokalnym:
+   - Katalog projektu: C:\Users\11\Desktop\zadanie4_gr1
+   - Wypełnione sprawozdanie ze zrzutami ekranu: C:\Users\11\Desktop\Sprawozdanie_Zadanie4_gr1.docx
+   - Plik z niniejszą instrukcją: C:\Users\11\Desktop\instrukcja_zadanie4_gr1.txt
+   - Zrzuty ekranu w wysokiej rozdzielczości: C:\Users\11\Desktop\zadanie4_gr1\zrzuty\
+
+b) Na Twoim koncie GitHub:
+   - Adres repozytorium: https://github.com/JanZaborowski/zadanie4_gr1
+   - Zawiera pełny kod źródłowy, szablony HTML, pliki CSS/JS, migracje, bazę danych oraz zrzuty ekranu.
+
+c) Na Twoim koncie PythonAnywhere (użytkownik: PI26JZaborowski):
+   - Katalog projektu: /home/PI26JZaborowski/zadanie4_gr1/
+   - Działająca aplikacja na żywo w Internecie: https://pi26jzaborowski.pythonanywhere.com/
+   - Działający endpoint API na żywo: https://pi26jzaborowski.pythonanywhere.com/api/manhwa/
+   - Panel admina na PythonAnywhere: https://pi26jzaborowski.pythonanywhere.com/admin/
+
+--------------------------------------------------------------------------------
+2. WYJAŚNIENIE KAŻDEGO KROKU PO KOLEI
+--------------------------------------------------------------------------------
+
+CZĘŚĆ 1: LABORATORIUM A (Projekt, Model, Baza danych, Strona HTML)
+
+• KROK 1: Utworzenie struktury projektu Django
+  1. Zainstalowano Django oraz bibliotekę Pillow.
+  2. Utworzono projekt komendą:
+     django-admin startproject config .
+  3. Utworzono aplikację o nazwie 'katalog':
+     python manage.py startapp katalog
+  4. W pliku 'config/settings.py':
+     - Dodano 'katalog' do listy INSTALLED_APPS,
+     - Ustawiono ALLOWED_HOSTS = ['*'],
+     - Skonfigurowano katalog szablonów (TEMPLATES: BASE_DIR / 'templates')
+     - Skonfigurowano obsługę plików statycznych (STATICFILES_DIRS, STATIC_ROOT),
+     - Ustawiono język polski ('pl') i strefę czasową ('Europe/Warsaw').
+
+• KROK 2: Zaprojektowanie modelu danych i baza SQLite (Wymóg: min. 5 pól, min. 3 typy pól)
+  W pliku 'katalog/models.py' utworzono model Manhwa posiadający 8 sensownych pól
+  o 5 różnych typach pól Django:
+  1. title (CharField) – pełna nazwa manhwy/komiksu.
+  2. author (CharField) – autor i rysownik.
+  3. genre (CharField) – gatunek (np. Akcja, Fantasy, System, Murim, Sport).
+  4. description (TextField) – obszerny opis fabuły.
+  5. chapters_count (IntegerField) – liczba rozdziałów.
+  6. rating (IntegerField) – ocena czytelnika w skali 1-10.
+  7. is_completed (BooleanField) – informacja, czy komiks jest zakończony (True/False).
+  8. release_date (DateField) – data oficjalnej premiery.
+  Model posiada czytelną metodę __str__() oraz metadane dla języka polskiego.
+
+• KROK 3: Migracje, Panel Administratora i Rekordy
+  1. Wykonano migracje tworzące strukturę tabel w bazie SQLite:
+     python manage.py makemigrations
+     python manage.py migrate
+  2. W 'katalog/admin.py' zarejestrowano model w panelu admina z filtrami i wyszukiwarką.
+  3. Przygotowano skrypt 'seed_db.py', który:
+     - Tworzy superużytkownika (Login: admin, Hasło: admin12345, Email: 31401@student.ajp.edu.pl),
+     - Dodaje 7 prawdziwych, popularnych tytułów manhw (Solo Leveling, Omniscient Reader,
+       Tower of God, The Beginning After The End, Nano Machine, Wind Breaker, Eleceed).
+
+• KROK 4: Strona główna, routing i szablony HTML/CSS
+  1. W 'katalog/views.py' utworzono funkcję widoku 'index(request)' renderującą szablon HTML.
+  2. W 'katalog/urls.py' oraz 'config/urls.py' skonfigurowano ścieżkę główną path('', views.index).
+  3. Przygotowano nowoczesny, ciemny szablon HTML ('templates/katalog/index.html') oraz
+     pliki stylów CSS ('static/css/style.css'), zawierające czytelny układ, karty manhw,
+     odznaki gatunków, animowane wskaźniki i responsywny grid.
+
+
+CZĘŚĆ 2: LABORATORIUM B (Endpoint API, fetch(), Aktualizacja DOM i Filtr)
+
+• KROK 5: Zbudowanie endpointu API w Django
+  1. W 'katalog/views.py' utworzono widok 'api_manhwa_list(request)'.
+  2. Widok pobiera obiekty z bazy przez Django ORM (Manhwa.objects.all()).
+  3. Zwraca odpowiedź w formacie JSON za pomocą klasy 'JsonResponse' o strukturze:
+     {
+       "items": [
+         {
+           "id": 1,
+           "title": "Solo Leveling",
+           "author": "Chugong, DUBU",
+           "genre": "Akcja",
+           "chapters_count": 179,
+           "rating": 10,
+           "is_completed": true,
+           "release_date": "2018-03-04",
+           "description": "..."
+         }, ...
+       ],
+       "count": 7
+     }
+  4. W 'katalog/urls.py' zarejestrowano ścieżkę:
+     path('api/manhwa/', views.api_manhwa_list, name='api_manhwa_list')
+     oraz alias 'api/obiekty/' dla pełnej zgodności z poleceniem.
+
+• KROK 6: Obsługa filtra po stronie Django ORM
+  W widoku API pobierany jest parametr zapytania URL:
+  - 'status' (np. ?status=completed lub ?status=ongoing) albo 'is_completed=true/false'.
+  - Filtrowanie odbywa się bezpośrednio na poziomie bazy danych przez ORM:
+    if status == 'completed':
+        queryset = queryset.filter(is_completed=True)
+    elif status == 'ongoing':
+        queryset = queryset.filter(is_completed=False)
+  Dzięki temu serwer zwraca do przeglądarki tylko wyselekcjonowane rekordy.
+
+• KROK 7: Asynchroniczna komunikacja w JavaScript — funkcja fetch()
+  W pliku 'static/js/main.js' zaimplementowano:
+  1. Podpięcie zdarzenia kliknięcia pod przycisk "Wczytaj dane (fetch)" oraz zmiany w filtrze.
+  2. Wysłanie asynchronicznego żądania HTTP GET:
+     const response = await fetch(url);
+  3. Weryfikację kodu statusu odpowiedzi za pomocą 'response.ok'.
+  4. Odczytanie i zdekodowanie danych z formatu JSON za pomocą 'await response.json()'.
+
+• KROK 8: Aktualizacja struktury DOM i obsługa stanów
+  1. Stan ładowania: Wyświetlenie elementu #loadingStatus z animacją CSS przed wysłaniem
+     żądania oraz jego automatyczne ukrycie w bloku 'finally'.
+  2. Stan błędu: Przechwycenie wyjątków (catch) i wyświetlenie komunikatu w elemencie #messageBox.
+  3. Stan pustej listy: Jeśli items.length === 0, poinformowanie użytkownika o braku pozycji.
+  4. Bezpieczna aktualizacja DOM: Wykorzystanie metod document.createElement() oraz
+     właściwości textContent zamiast innerHTML. Zapobiega to podatnościom XSS (Cross-Site Scripting).
+  5. Wszystko odbywa się na żywo bez przeładowywania (odświeżania) okna przeglądarki!
+
+--------------------------------------------------------------------------------
+3. JAK OBSŁUGIWAĆ APLIKACJĘ W PRZEGLĄDARCE
+--------------------------------------------------------------------------------
+1. Otwórz stronę:
+   - Lokalnie: http://127.0.0.1:8000/
+   - Lub na PythonAnywhere: https://pi26jzaborowski.pythonanywhere.com/
+
+2. Wczytanie danych:
+   - Po wejściu na stronę zobaczysz planszę z informacją "Brak załadowanych danych".
+   - Kliknij fioletowy przycisk „Wczytaj dane (fetch)”.
+   - Zobaczysz krótki stan ładowania, a następnie na ekranie bez przeładowania strony
+     zostaną wygenerowane karty prezentujące wszystkie komiksy z bazy.
+
+3. Filtrowanie danych:
+   - W rozwijanej liście „Status publikacji” wybierz np. „Tylko zakończone (is_completed=True)”.
+   - Strona wyśle zapytanie '/api/manhwa/?status=completed'.
+   - W ułamku sekundy DOM zaktualizuje się, pokazując wyłącznie zakończone tytuły (Solo Leveling, Wind Breaker).
+   - Wybierz „W trakcie wydawania”, a zobaczysz tytuły ongoing.
+   - Możesz również filtrować po gatunku (np. Akcja, Fantasy, System, Murim, Sport).
+
+4. Przycisk „Wyczyść widok”:
+   - Resetuje widok kart do stanu początkowego bez odświeżania okna przeglądarki.
+
+5. Sprawdzenie surowego API:
+   - Kliknij na dole panelu łącze „Surowa odpowiedź JSON (/api/manhwa/)”.
+   - Zobaczysz bezpośrednią odpowiedź serwera w formacie JSON (nagłówek Content-Type: application/json).
+
+--------------------------------------------------------------------------------
+4. ZARZĄDZANIE DANYMI W PANELU ADMINISTRATORA DJANGO
+--------------------------------------------------------------------------------
+1. Wejdź na adres:
+   - Lokalnie: http://127.0.0.1:8000/admin/
+   - Lub na PythonAnywhere: https://pi26jzaborowski.pythonanywhere.com/admin/
+
+2. Zaloguj się danymi:
+   - Login: admin
+   - Hasło: admin12345
+
+3. Możesz:
+   - Przeglądać tabelę manhw ze statystykami, ocenami i datami,
+   - Dodawać nowe pozycje komiksów (przycisk "Dodaj Manhwa / Komiks"),
+   - Edytować istniejące opisy, oceny, zmieniać status ukończenia,
+   - Usuwać rekordy.
+   Po dodaniu nowego rekordu w adminie, wróć na stronę główną i kliknij „Wczytaj dane (fetch)”
+   — nowy rekord pojawi się natychmiast, udowadniając że dane pobierane są z bazy przez ORM!
+
+--------------------------------------------------------------------------------
+5. JAK URUCHOMIĆ APLIKACJĘ LOKALNIE NA INNYM KOMPUTERZE
+--------------------------------------------------------------------------------
+1. Sklonuj repozytorium z Twojego GitHuba:
+   git clone https://github.com/JanZaborowski/zadanie4_gr1.git
+   cd zadanie4_gr1
+
+2. Utwórz środowisko wirtualne i aktywuj je:
+   python -m venv .venv
+   .venv\Scripts\activate   (w systemie Windows)
+   source .venv/bin/activate (w systemie Linux / macOS)
+
+3. Zainstaluj zależności:
+   pip install -r requirements.txt
+
+4. Wykonaj migracje i zasilenie danymi:
+   python manage.py migrate
+   python seed_db.py
+
+5. Uruchom serwer:
+   python manage.py runserver
+
+6. Otwórz w przeglądarce: http://127.0.0.1:8000/
+
+--------------------------------------------------------------------------------
+6. ODPOWIEDZI NA PYTANIA KONTROLNE (Z PREZENTACJI)
+--------------------------------------------------------------------------------
+
+Pytanie 1: Czym różni się widok renderujący HTML od endpointu JSON?
+Odpowiedź:
+Widok renderujący HTML generuje pełną strukturę dokumentu za pomocą silnika szablonów
+Django (funkcja render()), która jest interpretowana przez przeglądarkę jako kompletna strona.
+Wymaga to przeładowania całego okna.
+Endpoint JSON (np. api_manhwa_list) przetwarza dane z modeli ORM i zwraca czyste,
+ustrukturyzowane dane w formacie tekstowym JSON za pomocą JsonResponse z nagłówkiem
+Content-Type: application/json. Dzięki temu frontend może przetworzyć same dane i zaktualizować
+wyłącznie wybrany fragment interfejsu (drzewa DOM) asynchronicznie.
+
+Pytanie 2: Skąd endpoint pobiera rekordy i jaką rolę pełni ORM?
+Odpowiedź:
+Endpoint pobiera rekordy z relacyjnej bazy danych (w projekcie: SQLite, plik db.sqlite3).
+Django ORM (Object-Relational Mapping) pełni rolę warstwy abstrakcji, która tłumaczy operacje
+obiektowe w języku Python (np. Manhwa.objects.filter(is_completed=True)) na optymalne zapytania
+SQL (SELECT ... FROM katalog_manhwa WHERE is_completed = 1). Pozwala to programiście operować
+na obiektach Pythona bez konieczności ręcznego pisania surowego kodu SQL.
+
+Pytanie 3: Co robi fetch() i co zwraca response.json()?
+Odpowiedź:
+Funkcja fetch() jest wbudowanym w przeglądarkę interfejsem JavaScript służącym do wysyłania
+asynchronicznych żądań sieciowych HTTP bez blokowania głównego wątku przeglądarki. Zwraca
+obiekt obietnicy (Promise), który rozwiązuje się do obiektu Response reprezentującego nagłówki
+i stan połączenia. Metoda response.json() asynchronicznie odczytuje ciało odpowiedzi HTTP
+i parsuje ciąg znaków JSON na natywne obiekty i tablice JavaScript (Promise<any>).
+
+Pytanie 4: Dlaczego sprawdzamy response.ok?
+Odpowiedź:
+Funkcja fetch() odrzuca obietnicę (wchodzi do bloku catch) wyłącznie w przypadku krytycznego
+błędu sieciowego (np. brak połączenia z Internetem, zerwany kabel, błąd DNS). Jeśli serwer
+zwróci kod błędu HTTP, taki jak 404 (Not Found) lub 500 (Internal Server Error), fetch() nadal
+uznaje to za udane połączenie! Właściwość response.ok ma wartość true tylko wtedy, gdy kod
+odpowiedzi HTTP mieści się w przedziale 200-299. Sprawdzenie 'if (!response.ok)' pozwala
+wykryć błędy serwera i prawidłowo poinformować użytkownika w interfejsie.
+
+Pytanie 5: Jak JavaScript aktualizuje DOM bez przeładowania strony?
+Odpowiedź:
+JavaScript korzysta z interfejsu Document Object Model (DOM). Po odebraniu danych z API
+skrypt nie wywołuje odświeżenia strony (location.reload()), lecz operuje bezpośrednio na
+obiektach w pamięci przeglądarki. Za pomocą metod document.createElement('article'),
+element.classList.add(...) oraz element.textContent = ... tworzy nowe węzły HTML i dołącza
+je do drzewa dokumentu za pomocą metody parent.appendChild() lub replaceChildren().
+Dzięki temu odświeżany jest wyłącznie obszar listy, a stan reszty strony pozostaje nienaruszony.
+
+Pytanie 6: Dlaczego filtr danych powinien być obsługiwany również po stronie Django?
+Odpowiedź:
+Obsługa filtrowania po stronie backendu (w Django ORM) jest kluczowa dla wydajności
+i bezpieczeństwa. Gdyby filtr działał wyłącznie w przeglądarce, serwer musiałby przesyłać
+wszystkie rekordy z bazy (np. dziesiątki tysięcy pozycji), co drastycznie obciążałoby sieć
+oraz pamięć urządzenia użytkownika. Filtrowanie w Django ORM ogranicza zapytanie SQL na poziomie
+silnika bazy danych (klauzula WHERE), dzięki czemu przez sieć przesyłane są tylko te rekordy,
+które użytkownik faktycznie chce zobaczyć.
+
+--------------------------------------------------------------------------------
+7. PODSUMOWANIE
+--------------------------------------------------------------------------------
+Wszystkie wymagania stawiane w prezentacji (Laboratorium A i B, kroki 1-8) zostały
+zrealizowane w 100%. Projekt jest w pełni funkcjonalny, udokumentowany, opublikowany
+na GitHubie, wdrożony w chmurze PythonAnywhere oraz opisany w sprawozdaniu Word (.docx).
+================================================================================
